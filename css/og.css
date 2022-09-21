@@ -157,6 +157,12 @@
     outline: none;
     cursor: pointer;
     z-index: 1;
+<<<<<<< Updated upstream
+=======
+    border-radius: 4px;
+    background-color: rgba(64, 59, 59, 0.85);
+    filter: drop-shadow(3px 3px 4px black);
+>>>>>>> Stashed changes
 
 }
 
@@ -166,19 +172,30 @@
     height: 40px;
     background-size: 24px !important;
     background-position: 8px 8px !important;
-    filter: invert(95%) drop-shadow(4px 4px 3px black);
+    filter: brightness(0) invert(0.9) drop-shadow(3px 3px 4px black);
 }
 
 .og-menu-btn.og-OFF {
     border: none;
+    filter: drop-shadow(0px 0px 0px black);
 }
 
+<<<<<<< Updated upstream
 .og-menu-btn.og-OFF > div {
     filter: invert(75%)
 }
 
 .og-menu-btn.og-OFF > div:hover {
     filter: invert(100%)
+=======
+.og-menu-btn.og-OFF>div {
+    filter: brightness(0) invert(0.75)
+}
+
+
+.og-menu-btn.og-OFF>div:hover {
+    filter: brightness(0) invert(0.9)
+>>>>>>> Stashed changes
 }
 
 .og-hide {
@@ -188,8 +205,14 @@
 .og-dialog {
     overflow: auto;
     position: absolute;
+<<<<<<< Updated upstream
     right: 46px;
     width: 17em;
+=======
+    right: 52px;
+    width: 260px;
+    max-height: calc(100% - 120px);
+>>>>>>> Stashed changes
     border-radius: 4px;
     box-shadow: 0px 1px 4px rgba(15, 15, 15, 0.17);
     background-color: rgba(64, 59, 59, 0.85);
@@ -197,16 +220,95 @@
     padding: 0px;
     margin: 0px;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-
+    color: whitesmoke;
+    font-size: 16px;
+    font-weight: 400;
 }
 
+<<<<<<< Updated upstream
+=======
+
+/* =============================== */
+/*     DIALOG HEADER BTN STYLING   */
+/*         General Settings        */
+/* =============================== */
+
+.og-switcher-dialog-header {
+    height: 24px;
+    width: 260px;
+    margin: 0px;
+    padding: 0px;
+    border-radius: 4px 4px 0px 0px;
+    background-color: rgba(112, 90, 255, 0.8);
+    display: grid;
+    grid-template-columns: 24px 24px 1fr 24px;
+}
+
+
+/* All buttons have this class + OFF if they are OFF */
+.og-switcher-dialog-header-btn {
+    height: 24px;
+    width: 24px;
+    cursor: pointer;
+}
+
+/* All buttons have a div inside to hold the background base64 image */
+.og-switcher-dialog-header-btn>div {
+    width: 24px;
+    height: 24px;
+    background-size: 14px !important;
+    background-position: 5px 5px !important;
+    filter: brightness(0) invert(0.6)
+}
+
+.og-close-btn>div {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAA3NCSVQICAjb4U/gAAAACXBIWXMAAADeAAAA3gHd6oNqAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAEJQTFRF////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhihLswAAABV0Uk5TAAIHCRgaHi1LfoiWmJ6jxcfc4/T2aa9U1AAAALtJREFUOMuFU90ahBAUHIlUbMS8/6vuRWWz5TtzhRlzOD9AhXbrlnJO2+o0njC+sKJ480cPy40mybIMd36MfCCOP37a+YJ9qvdfeXI/PYbIDuLxjoVdLABgSl9QDAB/bmb7uc4/dj5XHtCXgYUKxyoo2MtCw9Vr6lQEBVXNHNYaMByKoKoVyRUbW0XLc0Niq2h5JmS2ipZnlgViCPGR4jfFRImpFosll1tsGLnlxKaV214eHHn05OHtj/8XWDc60UIMToAAAAAASUVORK5CYII=') top left no-repeat;
+}
+
+.og-minMax-btn>div {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAsQAAALEBxi1JjQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAGaSURBVFiFxdexThRRGMXx306CCKzGgoTQqRAtJMgzaIc8FYmRNyBqTcILaKfRAk1sYOmMhcFObExYEqDR4u5NyGS5O3d3Z+Ykp5rd7//duXe+OdNRXXewhWd4ivu4N7j2Fz/Rw0e8w1lG7aSWsYtz/Kvoc7zF6iTgOWyjnwEu+wo7mM2Fr+J4AnDZB1iqCt/A7ynCo39hrcrK64BHn6TuxG0c1giP/uKGM7HdADz6VRm+bLLTnutLrFxvYLdBePSbCL8rb8hMy310C7zAfHlPGtACNgthtrel54XwYmlL6x38wWLiR0f4MSbgkfQCTwmPxE0H5QjFmHCD//YS9S8mKT4VVdmCY3wfs/5jrCeun8I3zc+A6K+FsM9tqVcIGa4tfYCuECBbG8V97Ne80mHaG7ARktCV5lZ/gQfljnYabODlsFsyg88NwA8kYvqSkF7rgidDadRaTU2c4MkoeNQiPk0RnvVhEjUrpNfU23KUL4UDdysXfl0PhQCZk5rP8NqQR62sTkYjXWwKEW5jULz8eX4ojPb3QtAdqf+adwSq+JuuGwAAAABJRU5ErkJggg==') top left no-repeat;
+}
+
+.og-pin-btn {
+    justify-self: right;
+    margin-right: 4px;
+    transform: rotate(-45deg);
+}
+
+.og-pin-btn.og-OFF {
+    transform: rotate(0deg);
+}
+
+.og-pin-btn>div {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAA7AAAAOwBeShxvQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAE7SURBVFiF7da/LgRRGIbxH2tJqBQbCiSoSVQ6iSglEluoReUmXIM70ChU1ETrChQqF8DSiEIyBQomO9nMOPNvd0O8yalm8j3POec7Z4b//JE0sYfpYcEv8IE7zA4LHo+BSaTBBypxlAGPxy1a/RTYRDRMiRbuAwJ9k2h9Fw7BK/fEOOawoHvGi8JLrcQWrvDWU+QFjyXgSYngZXWI9wqQ0NhPwkZTBJYxErIsmWfchF5q4Ez9M+9gNa9pE+cVgZHuPfFUBF6HRIQ2dnCNlaLwOGW2I8JuWWBaiq5Eu054nEk85BSYL1I47Rj2polTzPi6H0JZKiKQBx5/8ztYE+6J7Trh8d53dDs51BO1NGAWPPk8629ovd/wnyReMVEFPpYTniVxXAUOGwXgSYkTXGKqqkADB1isWug/vyafkbf+xKZ/5a0AAAAASUVORK5CYII=') top left no-repeat;
+}
+
+
+.og-switcher-dialog-header-btn.og-OFF>div:hover {
+    filter: brightness(0) invert(0.75)
+}
+
+.og-switcher-dialog-header-btn>div:hover {
+    filter: brightness(0) invert(0.75);
+}
+
+.og-switcher-dialog-header-title {
+    margin-left: 4px;
+    line-height: 22px;
+    font-size: 12;
+    color: #aaaaaa;
+    width: fit-content;
+}
+
+>>>>>>> Stashed changes
 /* =============================== */
 /* 1 - LAYER SWITCHER */
-#og-layer-switcher-menu-btn {
+#og-switcher-layer-menu-btn {
     top: 12px;
     right: 12px;
 }
 
+<<<<<<< Updated upstream
 #og-layer-switcher-menu-btn > div {
     background: url('data:image/png;base64,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') top left no-repeat
 }
@@ -218,6 +320,46 @@
 
 .og-layer-container {
     position: relative;
+=======
+#og-switcher-layer-menu-btn>div {
+    background: url('data:image/png;base64,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') top left no-repeat
+}
+
+
+
+#og-switcher-layer-dialog input {
+    margin-right: 12px;
+}
+
+.og-layer-switcher-main-container {
+    resize: vertical;
+    overflow-y: auto;
+    height: min-content;
+}
+
+.og-layer-switcher-main-container.og-minimized {
+    height: 24px !important;
+    overflow-y: hidden;
+}
+
+#og-layer-switcher-dialog.og-minimized {
+    resize: vertical;
+    height: 24px !important;
+}
+
+
+
+
+.og-layer-switcher-record {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 6px 0px;
+}
+
+.og-layer-switcher-record.og-depth-1,
+.og-layer-switcher-record.og-depth-2 {
+>>>>>>> Stashed changes
     color: white;
     margin: 0px; /* I want the parent div to have no space around childer to click into */
     padding: 12px;
@@ -273,6 +415,17 @@
 
 .og-center-icon.og-dragging {
     color: #705affee;
+}
+
+
+
+#og-switcher-properties-menu-btn {
+    top: 60px;
+    right: 12px;
+}
+
+#og-switcher-properties-menu-btn>div {
+    background: url('data:image/png;base64,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') top left no-repeat
 }
 
 

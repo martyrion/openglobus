@@ -19,8 +19,8 @@ document.getElementById('viewExtent').onclick = () => {
   });
   const { entities, extent } = await dieppeRouen.addKmlFromUrl('./dieppe-rouen.kml');
 
-  const osm = new og.layer.XYZ('osm', { isBaseLayer: true, url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' });
-  globus = new og.Globe({ target: 'globus', terrain: new og.terrain.GlobusTerrain(), layers: [osm] });
+  const osm = new layer.XYZ('osm', { isBaseLayer: true, url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' });
+  globus = new Globe({ target: 'globus', terrain: new og.terrain.GlobusTerrain(), layers: [osm] });
   globus.planet.addLayer(dieppeRouen);
   globus.planet.flyExtent(extent);
 })();

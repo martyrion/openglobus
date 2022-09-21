@@ -247,6 +247,7 @@ class Renderer {
      */
     addPickingCallback(sender, callback) {
         var id = __pickingCallbackCounter__++;
+        console.log('picking event')
         this._pickingCallbacks.push({
             id: id,
             callback: callback,

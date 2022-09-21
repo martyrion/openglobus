@@ -6,7 +6,7 @@
 
 import { Control } from "./Control.js";
 import { Ruler } from "./ruler/Ruler.js";
-import { elementFactory, allMenuBtnOFF, allDialogsHide, btnClickHandler } from "./UIhelpers.js";
+import { elementFactory } from "./UIhelpers.js";
 
 /**
  * Activate ruler
@@ -25,7 +25,8 @@ class RulerSwitcher extends Control {
 
     oninit() {
         this.planet.addControl(this.ruler);
-        this._createMenuBtn();
+        // this._createMenuBtn();
+        this.onactivate();
     }
 
     onactivate() {

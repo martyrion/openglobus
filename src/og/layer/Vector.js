@@ -645,6 +645,7 @@ class Vector extends Layer {
         });
         entityCollection.events.on("lclick", function (e) {
             ve.dispatch(ve.lclick, e);
+            console.log('hi')
         });
         entityCollection.events.on("rclick", function (e) {
             ve.dispatch(ve.rclick, e);

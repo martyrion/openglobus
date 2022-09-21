@@ -292,11 +292,9 @@ class RulerScene extends RenderNode {
         } else if (this._pickedCorner) {
             let newLonLat = this._planet.getLonLatFromPixelTerrain(e);
             if (newLonLat) {
-                if (this._pickedCorner.properties.name === "start") {
-                    this._drawLine(newLonLat, this._anchorLonLat);
-                } else {
+               
                     this._drawLine(this._anchorLonLat, newLonLat);
-                }
+                
             }
         }
     }

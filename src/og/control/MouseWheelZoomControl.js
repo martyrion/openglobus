@@ -104,7 +104,7 @@ class MouseWheelZoomControl extends Control {
         if (this.stepIndex) {
             return;
         }
-
+        
         this.planet.stopFlying();
 
         this.stopRotation();
@@ -178,6 +178,7 @@ class MouseWheelZoomControl extends Control {
     }
 
     _draw(e) {
+        console.log('hi10')
         if (this._active) {
             var r = this.renderer;
             var cam = r.activeCamera;
@@ -235,6 +236,7 @@ class MouseWheelZoomControl extends Control {
                 cam.checkTerrainCollision();
 
                 cam.update();
+              
             }
 
             if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
