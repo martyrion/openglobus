@@ -210,6 +210,7 @@ class LayerSwitcher extends Control {
     }
 
     recordDOMfunctions() {
+        let planet = this.planet
         const createTitle = (object) => {
             if (object.data) {
                 return elementFactory('details', { class: 'og-switcher-layer-record-title' },
@@ -221,8 +222,8 @@ class LayerSwitcher extends Control {
 
         const visibility = (object, nameConcat) => {
             if (
-                (nameConcat == 'TerrainProviders' && this.planet.terrain == object) ||
-                (nameConcat == 'BaseLayers' && this.planet.baseLayer == object) ||
+                (nameConcat == 'TerrainProviders' && planet.terrain == object) ||
+                (nameConcat == 'BaseLayers' && planet.baseLayer == object) ||
                 (nameConcat == 'OverLays' && object.getVisibility() == true)
             ) {
                 return true
@@ -307,6 +308,7 @@ class LayerSwitcher extends Control {
     }
 
     recordInputBehaviour() {
+        let planet = this.planet
 
         const inputListener = (input, nameConcat, object, title) => {
             input ? input.addEventListener('click', () => inputClick(input, nameConcat, object, title)) : null
@@ -339,6 +341,7 @@ class LayerSwitcher extends Control {
     }
 
     recordTitleBehaviour() {
+        let planet = this.planet
         const titleListener = (title, object) => {
             title ? title.addEventListener('dblclick', () => titleDoubleClick(object)) : null
         }
@@ -351,6 +354,7 @@ class LayerSwitcher extends Control {
     }
 
     indicesPerDialogOrder = () => {
+        let planet = this.planet
         // See how user has placed overlays in switcher and change ZIndexes accordingly (start 10000, go down 100)
         let records = [...document.querySelectorAll('.og-switcher-layer-record.og-depth-1.Overlays')]
         let ids = records.map(x => x.id)
