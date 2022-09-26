@@ -5,7 +5,7 @@
 "use strict";
 
 import { Control } from "./Control.js";
-import { elementFactory, appendChildren, toggleText, enableElmovement } from "./UIhelpers.js";
+import { elementFactory, buildBasicDOM, noSwitcherHandler, documentWhereClick, dialogHeaderListeners } from "./UIhelpers.js";
 import { compose } from "../utils/functionComposition.js"
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
@@ -21,6 +21,7 @@ class LayerSwitcher extends Control {
             ...options
         });
 
+        this.cssSuffix = 'layer';
         this._id = LayerSwitcher.numSwitches++;
         this.switcherDependent = options.switcherDependent
         this.expandedSections = options.expandedSections
@@ -46,20 +47,30 @@ class LayerSwitcher extends Control {
 
     }
 
-    setupSwitcher () {
+    setupSwitcher() {
         const myData = this.getRecords(this.planet)
-        const { $mainContainer } = this.buildBasicDOM()
+        const { $menuBtn, $dialog, $header, $headerClose, $headerMinMax, $headerTitle, $headerPin, $mainContainer } =
+            buildBasicDOM(this.cssSuffix, this.planet)
+        const { switcherDependency } = this.getUserPrefs()
+
+        noSwitcherHandler($menuBtn, $dialog, $headerPin, switcherDependency)
+
+        const docListener = documentWhereClick($menuBtn, $dialog, $headerPin)
+        this.docListener = docListener // Function holder so that it is the same during add/remove
+        document.addEventListener('click', (e) => this.docListener(e))
+
+        dialogHeaderListeners($menuBtn, $dialog, $header, $headerClose, $headerMinMax, $headerTitle, $headerPin, $mainContainer, this.planet)
         this.buildRecords(myData, $mainContainer, 0)
-        
+
     }
-   
-    onactivate() { 
+
+    onactivate() {
         this.setupSwitcher()
     }
 
     ondeactivate() {
-        const $menuBtn = document.getElementById('og-layer-switcher-menu-btn')
-        const $dialog = document.getElementById('og-layer-switcher-dialog')
+        const $menuBtn = document.getElementById('og-switcher-layer-menu-btn')
+        const $dialog = document.getElementById('og-switcher-layer-dialog')
         $menuBtn.remove()
         $dialog.remove()
         document.removeEventListener('click', (e) => this.docListener(e))
@@ -166,22 +177,22 @@ class LayerSwitcher extends Control {
 
     addNewLayer(layer) {
         // Put the data(layer) to the appropriate recordsStructure section and run the build function
-        const $dialog = document.getElementById('og-layer-switcher-dialog')
-        if($dialog){
-        const { classifyObject } = this.planetDataBasic()
-        const targets = [...document.body.querySelectorAll('.og-layer-switcher-record.og-depth-0 > details')]
-        const type = classifyObject(layer)
-        const object = this.recordsStructure().data.filter(x => x.name == type)
-        const index = this.recordsStructure().data.findIndex(x => x.name == type)
-        object[0].data = [layer]
-        this.buildRecords(object[0], targets[index], 1, true)
+        const $dialog = document.getElementById('og-switcher-layer-dialog')
+        if ($dialog) {
+            const { classifyObject } = this.planetDataBasic()
+            const targets = [...document.body.querySelectorAll('.og-switcher-layer-record.og-depth-0 > details')]
+            const type = classifyObject(layer)
+            const object = this.recordsStructure().data.filter(x => x.name == type)
+            const index = this.recordsStructure().data.findIndex(x => x.name == type)
+            object[0].data = [layer]
+            this.buildRecords(object[0], targets[index], 1, true)
         }
     }
 
     removeLayer(layer) {
         // TODO...Haven't tested it yet 
         let id = layer.getID()
-        let el = document.body.querySelector('#' + id + ".og-layer-switcher-record.og-depth-1")
+        let el = document.body.querySelector('#' + id + ".og-switcher-layer-record.og-depth-1")
         el.remove()
 
         if (layer.displayInLayerSwitcher) { // check necessary, or else error with layers not in switcher - e.g rulerScene layers.
@@ -198,129 +209,20 @@ class LayerSwitcher extends Control {
         return { switcherDependency, sectionsOpening, btnInMenu }
     }
 
-    buildBasicDOM() {
-
-        const { switcherDependency, sectionsOpening, btnInMenu } = this.getUserPrefs()
-
-        // Basic DOM creation
-        const $menuBtn = elementFactory('div', { id: 'og-layer-switcher-menu-btn', class: 'og-menu-btn og-OFF' },
-            elementFactory('div', { id: 'og-layer-switcher-menu-icon', class: 'og-icon-holder' }))
-        const $dialog = elementFactory('div', { class: 'og-layer-switcher-dialog og-dialog og-not-visible', id: 'og-layer-switcher-dialog' })
-        const $header = elementFactory('div', { class: 'og-layer-switcher-dialog-header' })
-        const $header_close = elementFactory('div', { id: 'og-layer-switcher-dialog-close-btn', class: 'og-dialog-header-btn og-OFF' },
-            elementFactory('div', { class: 'og-icon-holder' }))
-        const $headerMinMax = elementFactory('div', { id: 'og-layer-switcher-dialog-minMax-btn', class: 'og-dialog-header-btn og-OFF' },
-            elementFactory('div', { class: 'og-icon-holder' }))
-        const $headerTitle = elementFactory('span', { class: 'og-dialog-header-title' }, 'Layer Switcher')
-        const $headerPin = elementFactory('div', { id: 'og-layer-switcher-dialog-pin-btn', class: 'og-dialog-header-btn og-OFF' },
-            elementFactory('div', { class: 'og-icon-holder' }))
-        const $mainContainer = elementFactory('div', { class: 'og-layer-switcher-main-container' })
-
-        $headerPin.dataset.attachement = 'UNPINNED'
-
-        // Append children to parents
-        appendChildren(this.planet.renderer.div, [$menuBtn, $dialog])
-        appendChildren($dialog, [$header, $mainContainer])
-        appendChildren($header, [$header_close, $headerMinMax, $headerTitle, $headerPin])
-
-        // Behaviour according to dependency on switcher
-        if (switcherDependency == false) {
-            $menuBtn.classList.add('og-hide') // hide menu btn
-            $dialog.classList.remove('og-not-visible') // Show dialog when opening webpage
-            $headerPin.classList.add('og-not-visible') //  hide the pin that attaches the dialog window    
-        }
-
-        const dialogBoxInitial = $dialog.getBoundingClientRect() // Initial position of the dialog window
-
-        // LISTENERS
-        const whereClick = (e, wrapper, menuBtn) => {
-            if (wrapper.contains(e.target)) { return 'inside' }
-            else if (menuBtn.contains(e.target)) { return 'on-btn' }
-            else { return 'outside' }
-        }
-
-        var whereClickHandler = null
-        whereClickHandler = (e) => { // cannot be a const otherwise cannot be created again in onactivate()
-            // Check where I clicked : in dialog, in button, elsewhere
-            let whereIclicked = $menuBtn ? whereClick(e, $dialog, $menuBtn) : null
-
-            // If I clicked elsewhere and the dialog is unpinned, then hide dialog and set menu btn to OFF
-            if (whereIclicked === 'outside' && $headerPin.dataset.attachement == 'UNPINNED') {
-                $dialog.classList.add('og-not-visible')
-                $menuBtn.classList.add('og-OFF')
-                // If Iclicked on button, toggle dialog and menu btn
-            } else if (whereIclicked === 'on-btn') {
-                $dialog.classList.toggle('og-not-visible')
-                $menuBtn.classList.toggle('og-OFF')
-            }
-        }
-
-        this.docListener = whereClickHandler // Function holder so that it is the same during add/remove
-
-        // Document
-        document.addEventListener('click', (e) => this.docListener(e))
-
-        // Header pin - here I am using instead of CSS classes, the data-* attribute of the DOM element to store the state
-        $headerPin.addEventListener('click', () => {
-            let newText = toggleText($headerPin.dataset.attachement, ['PINNED', 'UNPINNED'])
-            $headerPin.classList.toggle('og-OFF')
-            $headerPin.dataset.attachement = newText
-        })
-
-        // Header double click
-        $header.addEventListener('dblclick', (e) => {
-            if ($header !== e.target) return
-            restoreInitialPos($dialog)
-        }, false)
-
-        const restoreInitialPos = (el) => {
-            el.style.top = dialogBoxInitial.top + "px";
-            el.style.left = dialogBoxInitial.left + "px";
-        }
-
-        // Header mousedown --> move dialog OR nothing
-        const { behaviour, mouseMove } = enableElmovement($dialog, this.planet)
-
-        $header.addEventListener('mousedown', (e) => {
-            if ($headerPin.dataset.attachement == 'UNPINNED') {
-                behaviour(e)
-            } else {
-                document.removeEventListener('mousemove', mouseMove)
-            }
-        })
-
-        $header_close.addEventListener('click', () => {
-            $dialog.classList.add('og-not-visible')
-            $menuBtn.classList.add('og-OFF')
-        })
-
-        $headerMinMax.addEventListener('click', () => {
-            $mainContainer.classList.toggle('og-hide')
-            $mainContainer.classList.toggle('og-minimized')
-            $dialog.classList.toggle('og-minimized')
-        })
-
-        return { $mainContainer, whereClickHandler }
-    }
-
-    buildRecords(myData, $mainContainer, depth, createLastDropZone) {
-        let planet = this.planet
-
-        // Record functions
+    recordDOMfunctions() {
         const createTitle = (object) => {
             if (object.data) {
-                return elementFactory('details', { class: 'og-layer-switcher-record-title' },
+                return elementFactory('details', { class: 'og-switcher-layer-record-title' },
                     elementFactory('summary', {}, object.name || object.url || 'no-name'))
-            } else {
-                return elementFactory('label', { class: 'og-layer-switcher-record-title' },
-                    object.name || object.properties.name || 'no-name')
             }
+            return elementFactory('label', { class: 'og-switcher-layer-record-title' },
+                object.name || object.properties.name || 'no-name')
         }
 
         const visibility = (object, nameConcat) => {
             if (
-                (nameConcat == 'TerrainProviders' && planet.terrain == object) ||
-                (nameConcat == 'BaseLayers' && planet.baseLayer == object) ||
+                (nameConcat == 'TerrainProviders' && this.planet.terrain == object) ||
+                (nameConcat == 'BaseLayers' && this.planet.baseLayer == object) ||
                 (nameConcat == 'OverLays' && object.getVisibility() == true)
             ) {
                 return true
@@ -330,7 +232,7 @@ class LayerSwitcher extends Control {
         const createInput = (object, depth, type, nameConcat) => {
             if (depth > 0) {
                 return elementFactory('input', {
-                    class: 'og-layer-switcher-record-input ' +
+                    class: 'og-switcher-layer-record-input ' +
                         nameConcat, type: type || 'checkbox',
                     ...(visibility(object, nameConcat) ? { checked: true } : null)
                 }, '')
@@ -339,17 +241,79 @@ class LayerSwitcher extends Control {
 
         const createDropZone = (object, depth, type) => {
             if (depth > 0 && type === 'checkbox') {
-                return elementFactory('div', { class: 'og-layer-switcher-dropZone' },)
+                return elementFactory('div', { class: 'og-switcher-layer-dropZone' },)
             }
         }
 
-        // Record listeners
+        return { createInput, createTitle, createDropZone }
+    }
+
+    recordDraggingBehaviour() {
+        // Record listeners - dragging behaviour
+        const recordDragStart = (record) => {
+            record.addEventListener('dragstart', () => {
+                record.classList.add('og-dragging');
+            })
+        }
+        const recordDragEnd = (record) => {
+            record.addEventListener('dragend', () => {
+                record.classList.remove('og-dragging');
+            })
+        }
+
+        const recordDrag = (record) => {
+            recordDragStart(record)
+            recordDragEnd(record)
+        }
+
+        return { recordDragStart, recordDragEnd, recordDrag }
+    }
+
+    recordDropZoneBehaviour() {
+
+        const dropZoneClass = (e, type, dropZone) => {
+            e.preventDefault()
+            type === '+' ? dropZone.classList.add('og-drag-over') : dropZone.classList.remove('og-drag-over')
+        }
+
+        const dropZonedragOver = (dropZone) => dropZone.addEventListener('dragover', (e) => dropZoneClass(e, '+', dropZone))
+        const dropZonedragLeave = (dropZone) => dropZone.addEventListener('dragleave', (e) => dropZoneClass(e, '-', dropZone))
+
+        const dropZonedrop = (dropZone) => { // TODO in case layer entities will have dropZones I will have to modify this
+            dropZone.addEventListener('drop', (e) => {
+                let overlayContainer = document.body.querySelector('div.og-depth-0:nth-child(3) > details:nth-child(1)')
+                let dropZones = [...document.querySelectorAll('.og-switcher-layer-dropZone')];
+                e.preventDefault();
+                dropZone.classList.remove('og-drag-over');
+                let selectedLayerRecord = document.querySelector('.og-dragging');
+                let pos = dropZones.indexOf(dropZone) // Get position of drop zone - last is a special case
+                if (pos < dropZones.length - 1) { // not last 
+                    overlayContainer.insertBefore(selectedLayerRecord, dropZone.parentElement);  // Appear before the parent element     
+                } else {
+                    overlayContainer.insertBefore(selectedLayerRecord, dropZone);// Appear before last (fixed) dropzone element
+                }
+                this.indicesPerDialogOrder();
+            });
+        }
+
+        const dropZoneBehaviour = (dropZone) => {
+            dropZonedragOver(dropZone)
+            dropZonedragLeave(dropZone)
+            dropZonedrop(dropZone)
+        }
+
+        return { dropZoneBehaviour }
+
+    }
+
+    recordInputBehaviour() {
+
         const inputListener = (input, nameConcat, object, title) => {
             input ? input.addEventListener('click', () => inputClick(input, nameConcat, object, title)) : null
         }
 
         const inputClick = (input, nameConcat, object, title) => {
-            let siblings = [...document.querySelectorAll('.og-layer-switcher-record-input' + '.' + nameConcat)]
+            let siblings = [...document.querySelectorAll('.og-switcher-layer-record-input' + '.' + nameConcat)]
             if (nameConcat == 'BaseLayers') {
                 siblings.forEach(sibling => sibling.checked = false)
                 input.checked = true
@@ -371,6 +335,10 @@ class LayerSwitcher extends Control {
             }
         }
 
+        return { inputListener }
+    }
+
+    recordTitleBehaviour() {
         const titleListener = (title, object) => {
             title ? title.addEventListener('dblclick', () => titleDoubleClick(object)) : null
         }
@@ -379,82 +347,32 @@ class LayerSwitcher extends Control {
             planet.flyExtent(object.getExtent())
         }
 
-        // Record listeners - dragging behaviour
-        const recordDragStart = (record) => {
-            record.addEventListener('dragstart', () => {
-                record.classList.add('og-dragging');
-            })
+        return { titleListener }
+    }
+
+    indicesPerDialogOrder = () => {
+        // See how user has placed overlays in switcher and change ZIndexes accordingly (start 10000, go down 100)
+        let records = [...document.querySelectorAll('.og-switcher-layer-record.og-depth-1.Overlays')]
+        let ids = records.map(x => x.id)
+        let layers = planet.layers
+        let overlays = layers.filter(x => !x.isBaseLayer());
+        let visible_overlays = [...overlays.filter(x => x.displayInLayerSwitcher)];
+        for (let i = 0; i < ids.length; i++) {
+            let the_layer = visible_overlays.filter(x => x.getID() == ids[i]);
+            //TODO: No need to set zIndexes manually, just change the order in planet container.
+            the_layer[0].setZIndex(10000 - i * 100);
         }
-        const recordDragEnd = (record) => {
-            record.addEventListener('dragend', () => {
-                record.classList.remove('og-dragging');
-            })
-        }
+    }
 
-        const recordDrag = (record) => {
-            recordDragStart(record)
-            recordDragEnd(record)
-        }
-
-
-        const dropZonedragOver = (dropZone) => {
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault()
-                dropZone.classList.add('og-drag-over')
-            })
-        }
-
-        const dropZonedragLeave = (dropZone) => {
-            dropZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('og-drag-over');
-            })
-        }
-
-        // TODO in case layer entities will have dropZones I will have to modify this
-        const dropZonedrop = (dropZone) => {
-            dropZone.addEventListener('drop', (e) => {
-                let overlayContainer = document.body.querySelector('div.og-depth-0:nth-child(3) > details:nth-child(1)')
-                let dropZones = [...document.querySelectorAll('.og-layer-switcher-dropZone')];
-                e.preventDefault();
-                dropZone.classList.remove('og-drag-over');
-                let selectedLayerRecord = document.querySelector('.og-dragging');
-                // Get position of drop zone - last is a special case
-                let pos = dropZones.indexOf(dropZone)
-                if (pos < dropZones.length - 1) { // not last 
-                    overlayContainer.insertBefore(selectedLayerRecord, dropZone.parentElement);  // Appear before the parent element     
-
-                } else { // last
-                    overlayContainer.insertBefore(selectedLayerRecord, dropZone); // Appear before last (fixed) dropzone element
-                }
-                indicesPerDialogOrder();
-            });
-        }
-
-        const indicesPerDialogOrder = () => { // See how user has placed overlays in switcher and change ZIndexes accordingly (start 10000, go down 100)
-            let records = [...document.querySelectorAll('.og-layer-switcher-record.og-depth-1.Overlays')]
-            let ids = records.map(x => x.id)
-            let layers = planet.layers
-
-            let overlays = layers.filter(x => !x.isBaseLayer());
-            let visible_overlays = [...overlays.filter(x => x.displayInLayerSwitcher)];
-            for (let i = 0; i < ids.length; i++) {
-                let the_layer = visible_overlays.filter(x => x.getID() == ids[i]);
-                //
-                //TODO: No need to set zIndexes manually, just change the order in planet container.
-                //
-                the_layer[0].setZIndex(10000 - i * 100);
-            }
-        }
-
-        const dropZoneBehaviour = (dropZone) => {
-            dropZonedragOver(dropZone)
-            dropZonedragLeave(dropZone)
-            dropZonedrop(dropZone)
-        }
-
+    buildRecords(myData, $mainContainer, depth, createLastDropZone) {
+        const planet = this.planet
         const { sectionsOpening } = this.getUserPrefs()
-        // Actual record creation
+        const { createInput, createTitle, createDropZone } = this.recordDOMfunctions()
+        const { recordDrag } = this.recordDraggingBehaviour()
+        const { dropZoneBehaviour } = this.recordDropZoneBehaviour()
+        const { inputListener } = this.recordInputBehaviour()
+        const { titleListener } = this.recordTitleBehaviour()
+
         const createChildren = (object, $outerWrapper, depth) => {
             let data = object.data || object._entities
             if (data) {
@@ -468,15 +386,13 @@ class LayerSwitcher extends Control {
                     $title && depth == 0 && sectionsOpening == true ? $title.setAttribute("open", "") : null // open summaries of depth 0
                     let $innerWrapper = elementFactory('div', {
                         id: depth == 1 ? x._id : null,
-                        class: 'og-layer-switcher-record ' + 'og-depth-'
+                        class: 'og-switcher-layer-record ' + 'og-depth-'
                             + depth + (nameConcat ? ' ' + nameConcat : ''),
                         draggable: $dropZone ? true : false
                     })
-
                     $dropZone ? dropZoneBehaviour($dropZone) : null
                     $dropZone ? recordDrag($innerWrapper) : null
                     $dropZone ? $innerWrapper.appendChild($dropZone) : null
-
                     $input ? $innerWrapper.appendChild($input) : null
                     $title ? $innerWrapper.appendChild($title) : null
                     $outerWrapper.appendChild($innerWrapper)
@@ -488,17 +404,15 @@ class LayerSwitcher extends Control {
                         $dropZone ? recordDrag($innerWrapper) : null
                         $dropZone ? $outerWrapper.appendChild($dropZone) : null
                     }
-
                     createChildren(x, $title, depth + 1)
                 })
             }
         }
         createChildren(myData, $mainContainer, depth)
-
     }
 
     removeRecords() {
-        let records = [...document.querySelectorAll('.og-layer-switcher-record.og-depth-0')]
+        let records = [...document.querySelectorAll('.og-switcher-layer-record.og-depth-0')]
         records.forEach(record => record.remove())
     }
 }
